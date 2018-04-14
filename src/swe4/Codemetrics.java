@@ -35,13 +35,27 @@ public class Codemetrics {
 				JavaClass javaClass = parser.parse();
 
 				System.out.println("Class: " + javaClass.getClassName());
-				
+
+				int publicCounter = 0;
+				int protectedCounter = 0;
+				int privateCounter = 0;
 				System.out.println("  Methods:");
 				for (Method method : javaClass.getMethods()) {
-					System.out.println("    " + method);
+					if (method.toString().startsWith("public"))
+						publicCounter++;
+					if (method.toString().startsWith("protected"))
+						protectedCounter++;
+					if (method.toString().startsWith("private"))
+						privateCounter++;
+
+					//System.out.println("    " + method); //name of the method
 				}
+				System.out.println("    Public: " + publicCounter);
+				System.out.println("    Protected: " + protectedCounter);
+				System.out.println("    Private: " + privateCounter);
 				
-				javaClass.ge
+
+				// javaClass.getin
 			}
 
 		}
