@@ -7,9 +7,9 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.sun.org.apache.bcel.internal.classfile.ClassParser;
-import com.sun.org.apache.bcel.internal.classfile.Field;
 import com.sun.org.apache.bcel.internal.classfile.JavaClass;
 import com.sun.org.apache.bcel.internal.classfile.Method;
+import com.sun.org.apache.bcel.internal.util.ClassLoader;
 
 public class Codemetrics {
 
@@ -36,12 +36,30 @@ public class Codemetrics {
 
 				System.out.println("Class: " + javaClass.getClassName());
 
+				getAndCountSuperClasses(javaClass);
 				getAndCountMethods(javaClass);
 				getAndCountInterfaces(javaClass);
 
 			}
 
 		}
+	}
+
+	private static void getAndCountSuperClasses(JavaClass javaClass) {
+		int superClassCounter = 0;
+		JavaClass temp = javaClass;
+
+		while (temp.getSuperClass() != null) {
+			superClassCounter++;
+			// System.out.println(javaClass.getSuperclassName());
+			temp = temp.getSuperClass();
+		}
+
+		// for (JavaClass jc : javaClass.getSuperClasses()) {
+		// System.out.println(jc.toString());
+		// superClassCounter++;
+		// }
+		System.out.println("    Nr of Super Classes: " + superClassCounter);
 	}
 
 	private static void getAndCountInterfaces(JavaClass javaClass) {
@@ -58,6 +76,7 @@ public class Codemetrics {
 		int protectedCounter = 0;
 		int privateCounter = 0;
 		int params = 0;
+
 		System.out.println("  Methods:");
 
 		for (Method method : javaClass.getMethods()) {
@@ -68,26 +87,13 @@ public class Codemetrics {
 			if (method.toString().startsWith("private"))
 				privateCounter++;
 
-			int idxOpenParenthesis = method.toString().indexOf('(');
-			if (method.toString().charAt(idxOpenParenthesis + 1) != ')') {
-				// count the occurrences of ,
-				if (method.toString().indexOf(',') != -1) {
-					// count , -> number of params is 1 plus
-					params += method.toString().chars().filter(ch -> ch == ',').count() + 1;
-				} else {
-					// no , in string --> 1 param
-					params++;
-				}
-			}
-			// stuff below for testing reasons
-			//System.out.println(" " + method); //name of the method
-			//System.out.println("Params: "+params);
+			params = getAndCountParams(params, method);
 
 		}
 		System.out.println("    Public: " + publicCounter);
 		System.out.println("    Protected: " + protectedCounter);
 		System.out.println("    Private: " + privateCounter);
-		
+
 		double result = 0.0;
 		if (params > 0) {
 			result = (publicCounter + protectedCounter + privateCounter * 1.0) / params;
@@ -95,6 +101,24 @@ public class Codemetrics {
 		} else {
 			System.out.println("    Avg. Params: " + result);
 		}
+	}
+
+	private static int getAndCountParams(int params, Method method) {
+		int idxOpenParenthesis = method.toString().indexOf('(');
+		if (method.toString().charAt(idxOpenParenthesis + 1) != ')') {
+			// count the occurrences of ,
+			if (method.toString().indexOf(',') != -1) {
+				// count , -> number of params is 1 plus
+				params += method.toString().chars().filter(ch -> ch == ',').count() + 1;
+			} else {
+				// no , in string --> 1 param
+				params++;
+			}
+		}
+		// stuff below for testing reasons
+		// System.out.println(" " + method); //name of the method
+		// System.out.println("Params: "+params);
+		return params;
 	}
 
 }
