@@ -36,28 +36,64 @@ public class Codemetrics {
 
 				System.out.println("Class: " + javaClass.getClassName());
 
-				int publicCounter = 0;
-				int protectedCounter = 0;
-				int privateCounter = 0;
-				System.out.println("  Methods:");
-				for (Method method : javaClass.getMethods()) {
-					if (method.toString().startsWith("public"))
-						publicCounter++;
-					if (method.toString().startsWith("protected"))
-						protectedCounter++;
-					if (method.toString().startsWith("private"))
-						privateCounter++;
+				getAndCountMethods(javaClass);
+				getAndCountInterfaces(javaClass);
 
-					//System.out.println("    " + method); //name of the method
-				}
-				System.out.println("    Public: " + publicCounter);
-				System.out.println("    Protected: " + protectedCounter);
-				System.out.println("    Private: " + privateCounter);
-				
-
-				// javaClass.getin
 			}
 
+		}
+	}
+
+	private static void getAndCountInterfaces(JavaClass javaClass) {
+		System.out.println("  Interfaces:");
+		int interfaceCounter = 0;
+		for (JavaClass jc : javaClass.getInterfaces()) {
+			interfaceCounter++;
+		}
+		System.out.println("    Nr of Interfaces: " + interfaceCounter);
+	}
+
+	private static void getAndCountMethods(JavaClass javaClass) {
+		int publicCounter = 0;
+		int protectedCounter = 0;
+		int privateCounter = 0;
+		int params = 0;
+		System.out.println("  Methods:");
+
+		for (Method method : javaClass.getMethods()) {
+			if (method.toString().startsWith("public"))
+				publicCounter++;
+			if (method.toString().startsWith("protected"))
+				protectedCounter++;
+			if (method.toString().startsWith("private"))
+				privateCounter++;
+
+			int idxOpenParenthesis = method.toString().indexOf('(');
+			if (method.toString().charAt(idxOpenParenthesis + 1) != ')') {
+				// count the occurrences of ,
+				if (method.toString().indexOf(',') != -1) {
+					// count , -> number of params is 1 plus
+					params += method.toString().chars().filter(ch -> ch == ',').count() + 1;
+				} else {
+					// no , in string --> 1 param
+					params++;
+				}
+			}
+			// stuff below for testing reasons
+			//System.out.println(" " + method); //name of the method
+			//System.out.println("Params: "+params);
+
+		}
+		System.out.println("    Public: " + publicCounter);
+		System.out.println("    Protected: " + protectedCounter);
+		System.out.println("    Private: " + privateCounter);
+		
+		double result = 0.0;
+		if (params > 0) {
+			result = (publicCounter + protectedCounter + privateCounter * 1.0) / params;
+			System.out.println("    Avg. Params: " + result);
+		} else {
+			System.out.println("    Avg. Params: " + result);
 		}
 	}
 
