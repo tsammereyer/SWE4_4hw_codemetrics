@@ -2,57 +2,53 @@ package swe4;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import com.sun.org.apache.bcel.internal.classfile.ClassParser;
-import com.sun.org.apache.bcel.internal.classfile.JavaClass;
-import com.sun.org.apache.bcel.internal.classfile.Method;
-import com.sun.org.apache.bcel.internal.util.ClassLoader;
+import java.lang.reflect.Method;
 
 public class Codemetrics {
 
-	public static void main(String[] args) throws IOException {
-		// TODO Auto-generated method stub
+	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		importJarFile();
-
 	}
 
-	public static void importJarFile() throws IOException {
+	public static void importJarFile() throws IOException, ClassNotFoundException {
 		String jarFileName = "heap.jar";
-		JarFile jarfile = new JarFile(jarFileName);
 		JarFile jf = new JarFile(new File(jarFileName));
 
-		Enumeration<JarEntry> entries = jf.entries();
-		JarEntry element;
-		while (entries.hasMoreElements()) {
-			element = entries.nextElement();
-			if (element.getName().endsWith(".class")) { // !element.isDirectory()
-				System.out.println(element.getName());
+		ArrayList<String> classNames = new ArrayList<>();
 
-				ClassParser parser = new ClassParser(jarFileName, element.getName());
-				JavaClass javaClass = parser.parse();
+		String workingDir = System.getProperty("user.dir");
+		URL urlToJarFile = new URL("file://" + workingDir + "/" + jarFileName);
+		URLClassLoader cl = new URLClassLoader(new URL[] { urlToJarFile });
 
-				System.out.println("Class: " + javaClass.getClassName());
+		createArrayListOfClasses(jf, classNames);
 
-				getAndCountSuperClasses(javaClass);
-				getAndCountMethods(javaClass);
-				getAndCountInterfaces(javaClass);
+		for (int i = 0; i < classNames.size(); i++) {
 
-			}
+			Class<?> javaClass = cl.loadClass(classNames.get(i));
+			System.out.println("Class: " + javaClass.getName());
+
+			getAndCountSuperClasses(javaClass);
+			getAndCountInterfaces(javaClass);
+			getAndCountMethods(javaClass);
 
 		}
+
+		cl.close();
 	}
 
-	private static void getAndCountSuperClasses(JavaClass javaClass) {
-		int superClassCounter = 0;
-		JavaClass temp = javaClass;
+	private static void getAndCountSuperClasses(Class<?> javaClass) {
+		int superClassCounter = -1; // because java.lang.Object wont be counted
+		Class<?> temp = javaClass;
 
-		while (temp.getSuperClass() != null) {
+		while (temp.getSuperclass() != null) {
 			superClassCounter++;
-			// System.out.println(javaClass.getSuperclassName());
-			temp = temp.getSuperClass();
+			temp = temp.getSuperclass();
 		}
 
 		// for (JavaClass jc : javaClass.getSuperClasses()) {
@@ -62,32 +58,33 @@ public class Codemetrics {
 		System.out.println("    Nr of Super Classes: " + superClassCounter);
 	}
 
-	private static void getAndCountInterfaces(JavaClass javaClass) {
-		System.out.println("  Interfaces:");
+	private static void getAndCountInterfaces(Class<?> javaClass) {
 		int interfaceCounter = 0;
-		for (JavaClass jc : javaClass.getInterfaces()) {
+		for (Class<?> jc : javaClass.getInterfaces()) {
 			interfaceCounter++;
 		}
 		System.out.println("    Nr of Interfaces: " + interfaceCounter);
 	}
 
-	private static void getAndCountMethods(JavaClass javaClass) {
+	private static void getAndCountMethods(Class<?> javaClass) {
 		int publicCounter = 0;
 		int protectedCounter = 0;
 		int privateCounter = 0;
 		int params = 0;
 
+		Method[] allMethods = javaClass.getDeclaredMethods();
+
 		System.out.println("  Methods:");
 
-		for (Method method : javaClass.getMethods()) {
-			if (method.toString().startsWith("public"))
+		for (int i = 0; i < allMethods.length; i++) {
+			if (allMethods[i].toString().startsWith("public"))
 				publicCounter++;
-			if (method.toString().startsWith("protected"))
+			if (allMethods[i].toString().startsWith("protected"))
 				protectedCounter++;
-			if (method.toString().startsWith("private"))
+			if (allMethods[i].toString().startsWith("private"))
 				privateCounter++;
 
-			params = getAndCountParams(params, method);
+			params = getAndCountParams(params, allMethods[i]);
 
 		}
 		System.out.println("    Public: " + publicCounter);
@@ -121,4 +118,20 @@ public class Codemetrics {
 		return params;
 	}
 
+	private static void createArrayListOfClasses(JarFile jf, ArrayList<String> classNames) throws IOException {
+		Enumeration<JarEntry> classes = jf.entries();
+		JarEntry element;
+		while (classes.hasMoreElements()) {
+			element = classes.nextElement();
+			if (element.getName().endsWith(".class")) { // !element.isDirectory()
+				System.out.println(element.getName());
+				String classFileName = element.getName();
+				classFileName = classFileName.substring(0, classFileName.length() - 6);
+				classFileName = classFileName.replace("/", ".");
+				classNames.add(classFileName);
+			}
+
+		}
+		jf.close();
+	}
 }
