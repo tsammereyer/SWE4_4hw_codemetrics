@@ -13,13 +13,28 @@ import java.lang.reflect.Method;
 public class Codemetrics {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
-		importJarFile();
+		String jarFileName = "heap.jar";
+		String jarFileName2 = "heap.jar";// "spring-web-5.0.5.RELEASE.jar";
+		ArrayList<JarClassMetrics> jarClassMetricsList = new ArrayList<>();
+		ArrayList<JarClassMetrics> jarClassMetricsList2 = new ArrayList<>();
+		importJarFile(jarFileName, jarClassMetricsList);
+		importJarFile(jarFileName2, jarClassMetricsList2);
+		System.out.println("\n-----------------------------------\n");
+
+		for (JarClassMetrics jcm : jarClassMetricsList) {
+			System.out.println(jcm.toString());
+		}
+		
+		System.out.println("\n-----------------------------------\n");
+		
+		for (JarClassMetrics jcm : jarClassMetricsList2) {
+			System.out.println(jcm.toString());
+		}
 	}
 
-	public static void importJarFile() throws IOException, ClassNotFoundException {
-		String jarFileName = "heap.jar";
+	public static void importJarFile(String jarFileName, ArrayList<JarClassMetrics> jarClassMetricsList)
+			throws IOException, ClassNotFoundException {
 		JarFile jf = new JarFile(new File(jarFileName));
-
 		ArrayList<String> classNames = new ArrayList<>();
 
 		String workingDir = System.getProperty("user.dir");
@@ -31,18 +46,21 @@ public class Codemetrics {
 		for (int i = 0; i < classNames.size(); i++) {
 
 			Class<?> javaClass = cl.loadClass(classNames.get(i));
-			System.out.println("Class: " + javaClass.getName());
+			// System.out.println("Class: " + javaClass.getName());
 
-			getAndCountSuperClasses(javaClass);
-			getAndCountInterfaces(javaClass);
-			getAndCountMethods(javaClass);
+			JarClassMetrics jarClassMetrics = new JarClassMetrics(javaClass.getName());
 
+			getAndCountSuperClasses(javaClass, jarClassMetrics);
+			getAndCountInterfaces(javaClass, jarClassMetrics);
+			getAndCountMethods(javaClass, jarClassMetrics);
+
+			jarClassMetricsList.add(jarClassMetrics);
 		}
 
 		cl.close();
 	}
 
-	private static void getAndCountSuperClasses(Class<?> javaClass) {
+	private static void getAndCountSuperClasses(Class<?> javaClass, JarClassMetrics jarClassMetrics) {
 		int superClassCounter = -1; // because java.lang.Object wont be counted
 		Class<?> temp = javaClass;
 
@@ -55,18 +73,20 @@ public class Codemetrics {
 		// System.out.println(jc.toString());
 		// superClassCounter++;
 		// }
-		System.out.println("    Nr of Super Classes: " + superClassCounter);
+		// System.out.println(" Nr of Super Classes: " + superClassCounter);
+		jarClassMetrics.setNumberOfSuperclasses(superClassCounter);
 	}
 
-	private static void getAndCountInterfaces(Class<?> javaClass) {
+	private static void getAndCountInterfaces(Class<?> javaClass, JarClassMetrics jarClassMetrics) {
 		int interfaceCounter = 0;
 		for (Class<?> jc : javaClass.getInterfaces()) {
 			interfaceCounter++;
 		}
-		System.out.println("    Nr of Interfaces: " + interfaceCounter);
+		// System.out.println(" Nr of Interfaces: " + interfaceCounter);
+		jarClassMetrics.setNumberOfInterfaces(interfaceCounter);
 	}
 
-	private static void getAndCountMethods(Class<?> javaClass) {
+	private static void getAndCountMethods(Class<?> javaClass, JarClassMetrics jarClassMetrics) {
 		int publicCounter = 0;
 		int protectedCounter = 0;
 		int privateCounter = 0;
@@ -74,7 +94,7 @@ public class Codemetrics {
 
 		Method[] allMethods = javaClass.getDeclaredMethods();
 
-		System.out.println("  Methods:");
+		// System.out.println(" Methods:");
 
 		for (int i = 0; i < allMethods.length; i++) {
 			if (allMethods[i].toString().startsWith("public"))
@@ -87,17 +107,22 @@ public class Codemetrics {
 			params = getAndCountParams(params, allMethods[i]);
 
 		}
-		System.out.println("    Public: " + publicCounter);
-		System.out.println("    Protected: " + protectedCounter);
-		System.out.println("    Private: " + privateCounter);
+		// System.out.println(" Public: " + publicCounter);
+		// System.out.println(" Protected: " + protectedCounter);
+		// System.out.println(" Private: " + privateCounter);
 
 		double result = 0.0;
 		if (params > 0) {
 			result = (publicCounter + protectedCounter + privateCounter * 1.0) / params;
-			System.out.println("    Avg. Params: " + result);
-		} else {
-			System.out.println("    Avg. Params: " + result);
-		}
+			// System.out.println(" Avg. Params: " + result);
+		} // else {
+			// System.out.println(" Avg. Params: " + result);
+			// }
+
+		jarClassMetrics.setPublicMethods(publicCounter);
+		jarClassMetrics.setProtectedMethods(protectedCounter);
+		jarClassMetrics.setPrivateMethods(privateCounter);
+		jarClassMetrics.setAverageParametersPerMethod(result);
 	}
 
 	private static int getAndCountParams(int params, Method method) {
@@ -124,7 +149,7 @@ public class Codemetrics {
 		while (classes.hasMoreElements()) {
 			element = classes.nextElement();
 			if (element.getName().endsWith(".class")) { // !element.isDirectory()
-				System.out.println(element.getName());
+				// System.out.println(element.getName());
 				String classFileName = element.getName();
 				classFileName = classFileName.substring(0, classFileName.length() - 6);
 				classFileName = classFileName.replace("/", ".");

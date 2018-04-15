@@ -77,14 +77,13 @@ public class JarClassMetrics {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Class: " + className + "\n");
-		sb.append("  Nr of Interfaces: : " + numberOfInterfaces + "\n");
-		sb.append("  Nr of Superclasses: : " + numberOfSuperclasses + "\n");
-		sb.append("  Nr of Superclasses: : " + numberOfSuperclasses + "\n");
+		sb.append("  Nr of Interfaces: " + numberOfInterfaces + "\n");
+		sb.append("  Nr of Superclasses: " + numberOfSuperclasses + "\n");
 		sb.append("  Methods:\n");
-		sb.append("    Public: : " + publicMethods + "\n");
-		sb.append("    Protected: : " + protectedMethods + "\n");
-		sb.append("    Private: : " + privateMethods + "\n");
-		sb.append("    Avg. Paramters per Method: : " + averageParametersPerMethod + "\n");
+		sb.append("    Public: " + publicMethods + "\n");
+		sb.append("    Protected: " + protectedMethods + "\n");
+		sb.append("    Private: " + privateMethods + "\n");
+		sb.append("    Avg. Paramters per Method: " + averageParametersPerMethod + "\n");
 		return sb.toString();
 	}
 
