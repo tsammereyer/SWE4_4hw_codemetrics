@@ -14,7 +14,7 @@ public class Codemetrics {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
 		String jarFileName = "heap.jar";
-		String jarFileName2 = "heap.jar";// "spring-web-5.0.5.RELEASE.jar";
+		String jarFileName2 = "spring-web-5.0.5.RELEASE.jar"; //"heap.jar";
 		ArrayList<JarClassMetrics> jarClassMetricsList = new ArrayList<>();
 		ArrayList<JarClassMetrics> jarClassMetricsList2 = new ArrayList<>();
 		importJarFile(jarFileName, jarClassMetricsList);
@@ -42,19 +42,28 @@ public class Codemetrics {
 		URLClassLoader cl = new URLClassLoader(new URL[] { urlToJarFile });
 
 		createArrayListOfClasses(jf, classNames);
-
+		Class<?> javaClass = null;
 		for (int i = 0; i < classNames.size(); i++) {
+			try {
+				javaClass = cl.loadClass(classNames.get(i));
+				// System.out.println("Class: " + javaClass.getName());
+				JarClassMetrics jarClassMetrics = new JarClassMetrics(javaClass.getName());
 
-			Class<?> javaClass = cl.loadClass(classNames.get(i));
-			// System.out.println("Class: " + javaClass.getName());
+				getAndCountSuperClasses(javaClass, jarClassMetrics);
+				getAndCountInterfaces(javaClass, jarClassMetrics);
+				getAndCountMethods(javaClass, jarClassMetrics);
 
-			JarClassMetrics jarClassMetrics = new JarClassMetrics(javaClass.getName());
+				jarClassMetricsList.add(jarClassMetrics);
+			} catch (ClassNotFoundException e) {
+				System.out.println("Could not load class " + classNames.get(i));
+				//return null;
+			} catch (NoClassDefFoundError e) {
+				System.out.println("Could not load class " + classNames.get(i));
+				//return null;
+			}
+			
 
-			getAndCountSuperClasses(javaClass, jarClassMetrics);
-			getAndCountInterfaces(javaClass, jarClassMetrics);
-			getAndCountMethods(javaClass, jarClassMetrics);
-
-			jarClassMetricsList.add(jarClassMetrics);
+			
 		}
 
 		cl.close();
