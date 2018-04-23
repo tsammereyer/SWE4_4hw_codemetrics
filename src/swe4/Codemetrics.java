@@ -13,10 +13,13 @@ import java.lang.reflect.Method;
 public class Codemetrics {
 
 	public static void main(String[] args) throws IOException, ClassNotFoundException {
+		/*
+		 * if you want to run it without arguments then uncomment the section below.
 		String jarFileName = "heap.jar";
-		String jarFileName2 = "spring-web-5.0.5.RELEASE.jar"; //"heap.jar";
+		String jarFileName2 = "spring-web-5.0.5.RELEASE.jar"; // "heap.jar";
 		ArrayList<JarClassMetrics> jarClassMetricsList = new ArrayList<>();
 		ArrayList<JarClassMetrics> jarClassMetricsList2 = new ArrayList<>();
+		
 		importJarFile(jarFileName, jarClassMetricsList);
 		importJarFile(jarFileName2, jarClassMetricsList2);
 		System.out.println("\n-----------------------------------\n");
@@ -24,12 +27,38 @@ public class Codemetrics {
 		for (JarClassMetrics jcm : jarClassMetricsList) {
 			System.out.println(jcm.toString());
 		}
-		
+
 		System.out.println("\n-----------------------------------\n");
-		
+
 		for (JarClassMetrics jcm : jarClassMetricsList2) {
 			System.out.println(jcm.toString());
 		}
+		
+		System.out.println("\n-----------------------------------\n");
+		*/
+		
+		ArrayList<JarClassMetrics> jarClassMetricsList3 = new ArrayList<>();
+		// check for arguments
+		if (args.length == 0) {
+			System.out.println("you need to enter jar-files as arguments when using this program");
+			System.exit(1);
+		}
+
+		// get filenames from arguments list
+		ArrayList<String> filenames = new ArrayList<>();
+		for (int i = 0; i < args.length; i++) {
+			filenames.add(args[i]);
+		}
+
+		// go through filenames and find classes
+		for (int i = 0; i < filenames.size(); i++) {
+			importJarFile(filenames.get(i),jarClassMetricsList3);
+		}
+		// go through JarMetricsObjects and print it
+		for (JarClassMetrics jcm : jarClassMetricsList3) {
+			System.out.println(jcm.toString());
+		}
+
 	}
 
 	public static void importJarFile(String jarFileName, ArrayList<JarClassMetrics> jarClassMetricsList)
@@ -56,14 +85,12 @@ public class Codemetrics {
 				jarClassMetricsList.add(jarClassMetrics);
 			} catch (ClassNotFoundException e) {
 				System.out.println("Could not load class " + classNames.get(i));
-				//return null;
+				// return null;
 			} catch (NoClassDefFoundError e) {
 				System.out.println("Could not load class " + classNames.get(i));
-				//return null;
+				// return null;
 			}
-			
 
-			
 		}
 
 		cl.close();
