@@ -44,10 +44,13 @@ public class Codemetrics {
 			System.exit(1);
 		}
 
+		//for package name
+		StringBuilder sb = new StringBuilder();
 		// get filenames from arguments list
 		ArrayList<String> filenames = new ArrayList<>();
 		for (int i = 0; i < args.length; i++) {
 			filenames.add(args[i]);
+			sb.append(args[i]+" ");
 		}
 
 		// go through filenames and find classes
@@ -58,6 +61,8 @@ public class Codemetrics {
 		for (JarClassMetrics jcm : jarClassMetricsList3) {
 			System.out.println(jcm.toString());
 		}
+		PackageMetrics pm = new PackageMetrics(sb.toString(), jarClassMetricsList3);
+		System.out.println(pm.toString());
 
 	}
 
